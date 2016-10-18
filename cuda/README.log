@@ -1,0 +1,52 @@
+=====================
+$ time ParPrime 7
+Computing Primes from 1 to 10000000
+totThreads=10000001 blocksPerGrid=9766 threadsPerBlock=1024
+Total:   Primes=664579
+real    0m2.098s
+=====================
+$ nvcc -arch sm_20 -o ParPrime ParPrime.cu
+$ time ParPrime 8
+Computing Primes from 1 to 100000000
+totThreads=100000001 blocksPerGrid=97657 threadsPerBlock=1024
+Failed to launch kernel (error code invalid argument)!
+real    0m0.709s
+ARCH:SM_20 only allows max-x dimension of rid = 65535.
+ARCH:SM_30 allows max-x dimenstion of grid = 2^31-1.
+ARCH:SM_20+(all): max-x dimension of block = 1024 (threads).
+---------
+$ nvcc -arch sm_30 -o ParPrime ParPrime.cu
+$ time ParPrime 8
+Computing Primes from 1 to 100000000
+totThreads=100000001 blocksPerGrid=97657 threadsPerBlock=1024
+Failed to copy device mem to host mem (error code unknown error)!
+real    0m5.622s
+
+NOTE: GRAPHICS DRIVER RESET!!!
+========================
+$ time ParPrime 9
+Computing Primes from 1 to 1000000000
+Failed to allocate device mem (error code out of memory)!
+real    0m0.710s
+
+NOTE: GPU only has 1GB gmem
+=======================
+$ time ParPrime 10
+Computing Primes from 1 to 10
+totThreads=11 blocksPerGrid=1 threadsPerBlock=1024
+Total:   Primes=4
+real    0m0.677s
+
+NOTE: the 32bit data type is insufficient
+========================
+TODO: 
+DONE - iterate only thru odds for prime check
+DONE - check only odds for prime-ness. add mapping from threadId to num.
+DONE - check original C++ prime code to optimize for odd searching and add checking.
+1 - Figure out how to workaround Graphics Driver Reset issue (after 5 secs).  Do I split up launches?
+2 - Figure out workaround for 'out of memory' error in 'ParPrime 9'
+3 - check for unsigned data types to get up to 4GB. 
+4 - add 64bit data types to get above 4GB. 'ParPrime 10'
+6 - add cpu timer.  figure out which timer nvcc is compatible with.  might be VS vs. gcc issue.
+10 - add storage / synchronization of primes to a certain point.  figure out when to copy to gpu, sort, etc.
+11 - map out every 3 prime number > 3.  should be 33% speedup
